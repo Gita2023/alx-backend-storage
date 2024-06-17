@@ -21,21 +21,29 @@ import pymongo
 from pymongo import MongoClient
 
 def log_nginx_stats(mongo_collection):
-    """provides some stats about Nginx logs"""
-    print(f"{mongo_collection.estimated_document_count()} logs")
+    """Provides some stats about Nginx logs."""
+    try:
+        log_count = mongo_collection.estimated_document_count()
+        print(f"{log_count} logs")
 
-    print("Methods:")
-    for method in ["GET", "POST", "PUT", "PATCH", "DELETE"]:
-        count = mongo_collection.count_documents({"method": method})
-        print(f"\tmethod {method}: {count}")
+        print("Methods:")
+        methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
+        for method in methods:
+            method_count = mongo_collection.count_documents({"method": method})
+            print(f"\tmethod {method}: {method_count}")
 
-    number_of_gets = mongo_collection.count_documents(
-        {"method": "GET", "path": "/status"})
-    print(f"{number_of_gets} status check")
+        status_check_count = mongo_collection.count_documents({"method": "GET", "path": "/status"})
+        print(f"{status_check_count} status check")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
-    # Using context manager to ensure proper closure of MongoClient
-    with MongoClient('mongodb://127.0.0.1:27017') as client:
-        mongo_collection = client.logs.nginx
-        log_nginx_stats(mongo_collection)
+    try:
+        with MongoClient('mongodb://127.0.0.1:27017') as client:
+            mongo_collection = client.logs.nginx
+            log_nginx_stats(mongo_collection)
+    except pymongo.errors.ServerSelectionTimeoutError as err:
+        print(f"Failed to connect to MongoDB: {err}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
