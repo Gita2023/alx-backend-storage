@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Write a Python script that provides some stats about Nginx
+"""
+Write a Python script that provides some stats about Nginx
 logs stored in MongoDB:
 
 Database: logs
@@ -16,10 +17,8 @@ path=/status
 You can use this dump as data sample: dump.zip
 """
 
-
 import pymongo
 from pymongo import MongoClient
-
 
 def log_nginx_stats(mongo_collection):
     """provides some stats about Nginx logs"""
@@ -34,7 +33,9 @@ def log_nginx_stats(mongo_collection):
         {"method": "GET", "path": "/status"})
     print(f"{number_of_gets} status check")
 
-
 if __name__ == "__main__":
-    mongo_collection = MongoClient('mongodb://127.0.0.1:27017').logs.nginx
-    log_nginx_stats(mongo_collection)
+    # Using context manager to ensure proper closure of MongoClient
+    with MongoClient('mongodb://127.0.0.1:27017') as client:
+        mongo_collection = client.logs.nginx
+        log_nginx_stats(mongo_collection)
+
